@@ -50,11 +50,10 @@ impl BinanceClient {
     }
 
     fn build_stream_url(&self) -> String {
-        // Use Binance production WebSocket for market data (safe, read-only)
-        // Testnet might have different endpoints or be less reliable
+        // Use Binance testnet WebSocket - free fake money trading!
         if self.symbols.len() == 1 {
             let symbol = self.symbols[0].to_lowercase();
-            format!("wss://stream.binance.com:9443/ws/{}@ticker", symbol)
+            format!("wss://stream.testnet.binance.vision/ws/{}@ticker", symbol)
         } else {
             let streams: Vec<String> = self
                 .symbols
@@ -63,7 +62,7 @@ impl BinanceClient {
                 .collect();
             
             format!(
-                "wss://stream.binance.com:9443/stream?streams={}",
+                "wss://stream.testnet.binance.vision/stream?streams={}",
                 streams.join("/")
             )
         }
