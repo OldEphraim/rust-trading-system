@@ -21,3 +21,6 @@ chrono = { version = "0.4", features = ["serde"] }
 [dev-dependencies]
 tokio-test = "0.4"
 proptest = "1.0"
+mockall = "0.12"
+wiremock = "0.6"
+tempfile = "3.0"

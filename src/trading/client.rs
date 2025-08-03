@@ -8,11 +8,13 @@ use tracing::{error, info};
 
 type HmacSha256 = Hmac<Sha256>;
 
+/// TestnetTrader is the main struct for interacting with Binance's testnet API
+/// It handles authentication, API calls, and order management with fake money
 pub struct TestnetTrader {
-    api_key: String,
-    secret_key: String,
-    client: Client,
-    base_url: String,
+    api_key: String,      // Your testnet API key
+    secret_key: String,   // Your testnet secret key (for signing requests)
+    client: Client,       // HTTP client for making requests
+    base_url: String,     // Base URL for the API (can be changed for testing)
 }
 
 impl TestnetTrader {
@@ -25,13 +27,20 @@ impl TestnetTrader {
         }
     }
 
+    pub fn with_base_url(mut self, base_url: String) -> Self {
+        self.base_url = base_url;
+        self
+    }
+
     pub async fn get_account_info(&self) -> Result<AccountInfo, Box<dyn std::error::Error>> {
         let endpoint = "/api/v3/account";
         let timestamp = chrono::Utc::now().timestamp_millis() as u64;
         
+        // Build parameters for the API call
         let mut params = HashMap::new();
         params.insert("timestamp".to_string(), timestamp.to_string());
         
+        // Create query string and sign it
         let query_string = self.build_query_string(&params);
         let signature = self.sign(&query_string);
         
@@ -124,7 +133,7 @@ impl TestnetTrader {
             OrderSide::Sell => "SELL".to_string(),
         });
         params.insert("type".to_string(), "LIMIT".to_string());
-        params.insert("timeInForce".to_string(), "GTC".to_string());
+        params.insert("timeInForce".to_string(), "GTC".to_string()); // Good Till Canceled
         params.insert("quantity".to_string(), format!("{:.8}", quantity));
         params.insert("price".to_string(), format!("{:.2}", price));
         params.insert("timestamp".to_string(), timestamp.to_string());
@@ -244,7 +253,7 @@ impl TestnetTrader {
         }
     }
 
-    fn build_query_string(&self, params: &HashMap<String, String>) -> String {
+    pub fn build_query_string(&self, params: &std::collections::HashMap<String, String>) -> String {
         let mut sorted_params: Vec<_> = params.iter().collect();
         sorted_params.sort_by_key(|&(k, _)| k);
         
@@ -255,7 +264,7 @@ impl TestnetTrader {
             .join("&")
     }
 
-    fn sign(&self, query_string: &str) -> String {
+    pub fn sign(&self, query_string: &str) -> String {
         let mut mac = HmacSha256::new_from_slice(self.secret_key.as_bytes())
             .expect("HMAC can take key of any size");
         mac.update(query_string.as_bytes());
